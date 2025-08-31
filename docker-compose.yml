@@ -7,9 +7,19 @@ services:
       # Имя Docker-файла из которого будет собран образ
       dockerfile: Dockerfile.production
     # Команда, которая будет выполнена после старта сервиса
-    command: make test
+    command: make dev
     image: chirkxv/docker-project-74
-    # volumes:
-    #   # Текущая директория пробрасывается в директорию /app внутри контейнера
-    #   # Путь внутри контейнера (после двоеточия) обязательно должен быть абсолютным
-    #   - ".:/app"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
